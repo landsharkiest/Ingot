@@ -45,7 +45,7 @@ internal static class ValidationPipeline
         // Stage 1 — DataAnnotations, recursive.
         if (options.Validation.UseDataAnnotations)
         {
-            var annotationFailures = RecursiveAnnotationValidator.Validate(value);
+            var annotationFailures = RecursiveAnnotationValidator.Validate(value, options.SerializerOptions);
             if (annotationFailures.Count > 0) return (value, annotationFailures);
         }
 
@@ -79,17 +79,20 @@ internal static class ValidationPipeline
 /// </summary>
 internal static class RecursiveAnnotationValidator
 {
-    public static IReadOnlyList<ValidationFailure> Validate(object root)
+    public static IReadOnlyList<ValidationFailure> Validate(
+        object root,
+        JsonSerializerOptions serializerOptions)
     {
         var failures = new List<ValidationFailure>();
-        Visit(root, "$", failures, new HashSet<object>(ReferenceEqualityComparer.Instance), depth: 0);
+        Visit(root, "$", failures, new HashSet<object>(ReferenceEqualityComparer.Instance),
+            serializerOptions, depth: 0);
         return failures;
     }
 
     private const int MaxDepth = 32; // matches STJ's default; a graph deeper than this didn't parse anyway
 
     private static void Visit(object? instance, string path, List<ValidationFailure> failures,
-        HashSet<object> seen, int depth)
+        HashSet<object> seen, JsonSerializerOptions serializerOptions, int depth)
     {
         if (instance is null || depth > MaxDepth) return;
 
@@ -102,7 +105,7 @@ internal static class RecursiveAnnotationValidator
             var i = 0;
             foreach (var item in enumerable)
             {
-                Visit(item, $"{path}[{i++}]", failures, seen, depth + 1);
+                Visit(item, $"{path}[{i++}]", failures, seen, serializerOptions, depth + 1);
             }
             return;
         }
@@ -113,7 +116,7 @@ internal static class RecursiveAnnotationValidator
         foreach (var result in results)
         {
             var member = result.MemberNames.FirstOrDefault();
-            var memberPath = member is null ? path : $"{path}.{JsonNameOf(type, member)}";
+            var memberPath = member is null ? path : $"{path}.{JsonNameOf(type, member, serializerOptions)}";
             failures.Add(new ValidationFailure(
                 memberPath,
                 result.ErrorMessage ?? "Value is invalid.",
@@ -129,7 +132,8 @@ internal static class RecursiveAnnotationValidator
             try { child = property.GetValue(instance); }
             catch { continue; } // a throwing getter is not an extraction failure
 
-            Visit(child, $"{path}.{JsonNameOf(type, property.Name)}", failures, seen, depth + 1);
+            Visit(child, $"{path}.{JsonNameOf(type, property.Name, serializerOptions)}", failures,
+                seen, serializerOptions, depth + 1);
         }
     }
 
@@ -145,7 +149,10 @@ internal static class RecursiveAnnotationValidator
 
     /// <summary>Reported paths must match the JSON the model produced, not CLR casing —
     /// the model can't act on <c>$.Total</c> when it wrote <c>"total"</c>.</summary>
-    private static string JsonNameOf(Type type, string clrName)
+    private static string JsonNameOf(
+        Type type,
+        string clrName,
+        JsonSerializerOptions serializerOptions)
     {
         var property = type.GetProperty(clrName);
         var attr = property?.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), inherit: true)
@@ -153,9 +160,6 @@ internal static class RecursiveAnnotationValidator
             .FirstOrDefault();
         if (attr is not null) return attr.Name;
 
-        // Mirror the configured naming policy; web defaults camel-case.
-        return clrName.Length > 0 && char.IsUpper(clrName[0])
-            ? char.ToLowerInvariant(clrName[0]) + clrName[1..]
-            : clrName;
+        return serializerOptions.PropertyNamingPolicy?.ConvertName(clrName) ?? clrName;
     }
 }

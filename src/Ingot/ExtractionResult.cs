@@ -80,11 +80,15 @@ public sealed class ExtractionResult<T>
 /// attempt history so callers can log exactly what the model returned and why it was rejected.</summary>
 public sealed class ExtractionException : Exception
 {
-    internal ExtractionException(Type targetType, IReadOnlyList<ExtractionAttempt> attempts)
+    internal ExtractionException(
+        Type targetType,
+        IReadOnlyList<ExtractionAttempt> attempts,
+        UsageDetails aggregateUsage)
         : base(BuildMessage(targetType, attempts))
     {
         TargetType = targetType;
         Attempts = attempts;
+        AggregateUsage = aggregateUsage;
     }
 
     /// <summary>The type the extraction was targeting.</summary>
@@ -92,6 +96,9 @@ public sealed class ExtractionException : Exception
 
     /// <summary>Every model round-trip that was attempted, with the failures that rejected each.</summary>
     public IReadOnlyList<ExtractionAttempt> Attempts { get; }
+
+    /// <summary>Token usage summed across every failed attempt.</summary>
+    public UsageDetails AggregateUsage { get; }
 
     private static string BuildMessage(Type targetType, IReadOnlyList<ExtractionAttempt> attempts)
     {

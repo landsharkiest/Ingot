@@ -15,12 +15,11 @@ internal static class LenientJson
 
         var span = text.AsSpan().Trim();
 
-        // Fast path: the whole response is (probably) the payload.
-        if (span.Length > 1 && (span[0] == '{' || span[0] == '['))
-        {
-            var balanced = ExtractBalanced(span, 0);
-            if (balanced is not null) return balanced;
-        }
+        // Fast path: the whole response is (probably) the payload. If that opening bracket is
+        // truncated or mismatched, keep scanning: models sometimes emit a false start followed
+        // by a complete corrected payload in the same response.
+        var balanced = TryExtractFirstBalanced(span);
+        if (balanced is not null && span[0] is '{' or '[') return balanced;
 
         // Fenced block: ```json ... ``` or bare ``` ... ```
         var fenceStart = span.IndexOf("```".AsSpan());
@@ -33,20 +32,23 @@ internal static class LenientJson
             if (fenceEnd > 0)
             {
                 var inner = afterFence[..fenceEnd].Trim();
-                if (inner.Length > 0 && (inner[0] == '{' || inner[0] == '['))
-                {
-                    var balanced = ExtractBalanced(inner, 0);
-                    if (balanced is not null) return balanced;
-                }
+                balanced = TryExtractFirstBalanced(inner);
+                if (balanced is not null) return balanced;
             }
         }
 
         // Prose-wrapped: find the first opening bracket and try from there.
+        return TryExtractFirstBalanced(span);
+    }
+
+    private static string? TryExtractFirstBalanced(ReadOnlySpan<char> span)
+    {
         for (var i = 0; i < span.Length; i++)
         {
             if (span[i] is '{' or '[')
             {
-                return ExtractBalanced(span, i);
+                var candidate = ExtractBalanced(span, i);
+                if (candidate is not null) return candidate;
             }
         }
 
@@ -55,8 +57,11 @@ internal static class LenientJson
 
     private static string? ExtractBalanced(ReadOnlySpan<char> span, int start)
     {
-        var open = span[start];
-        var close = open == '{' ? '}' : ']';
+        // JSON nesting can freely alternate objects and arrays. Track the expected closing
+        // delimiter at each level so a mismatched candidate is rejected rather than accidentally
+        // closed by a later bracket of the outer type.
+        Span<char> closers = stackalloc char[64];
+        char[]? rented = null;
         var depth = 0;
         var inString = false;
         var escaped = false;
@@ -73,9 +78,27 @@ internal static class LenientJson
                 continue;
             }
 
-            if (c == '"') inString = true;
-            else if (c == open) depth++;
-            else if (c == close && --depth == 0) return span[start..(i + 1)].ToString();
+            if (c == '"')
+            {
+                inString = true;
+            }
+            else if (c is '{' or '[')
+            {
+                if (depth == closers.Length)
+                {
+                    var expanded = new char[closers.Length * 2];
+                    closers.CopyTo(expanded);
+                    rented = expanded;
+                    closers = rented;
+                }
+
+                closers[depth++] = c == '{' ? '}' : ']';
+            }
+            else if (c is '}' or ']')
+            {
+                if (depth == 0 || closers[depth - 1] != c) return null;
+                if (--depth == 0) return span[start..(i + 1)].ToString();
+            }
         }
 
         return null; // unbalanced — likely a truncated response; let the repair loop handle it
