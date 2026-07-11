@@ -35,7 +35,18 @@ dotnet_style_prefer_conditional_expression_over_return = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 
-# --- Naming: PascalCase for public members, _camelCase for private fields ---
+# --- Naming ---
+# const / static fields are PascalCase (this rule must precede the instance-field
+# rule below — the first matching rule wins, so static fields never fall through
+# to the underscore rule).
+dotnet_naming_rule.static_fields_pascal.severity = suggestion
+dotnet_naming_rule.static_fields_pascal.symbols = static_fields
+dotnet_naming_rule.static_fields_pascal.style = pascal_case
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Private *instance* fields are _camelCase.
 dotnet_naming_rule.private_fields_underscore.severity = suggestion
 dotnet_naming_rule.private_fields_underscore.symbols = private_fields
 dotnet_naming_rule.private_fields_underscore.style = underscore_prefix
