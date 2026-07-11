@@ -16,11 +16,10 @@ dotnet format --verify-no-changes   # what CI checks
 Target framework: **net8.0**. Tests are **xUnit** behavior tests over a scripted
 `FakeChatClient` (no live model calls in CI).
 
-> **Known state:** the Phase 1 slice was written offline against
-> `Microsoft.Extensions.AI.Abstractions` from memory. Until the 7-item
-> "API surface to verify" list in `README.md` is reconciled against the current
-> stable package, `dotnet build` is expected to fail. This is the first task
-> before CI can go green.
+> **Status:** Phase 1 is reconciled against `Microsoft.Extensions.AI.Abstractions`
+> **9.10.2** — the build is clean (warnings-as-errors) and all 8 tests pass. CI
+> (build + test + format) gates every PR; CodeRabbit reviews automatically and
+> can apply fixes via `@coderabbitai autofix`.
 
 ## Code conventions (enforced by `.editorconfig` + analyzers)
 
