@@ -22,6 +22,7 @@ public enum FailureCategory
 /// <param name="Category">The pipeline stage that produced the failure.</param>
 public sealed record ValidationFailure(string Path, string Message, FailureCategory Category)
 {
+    /// <summary>Renders the failure as <c>path: message</c> for logs and repair prompts.</summary>
     public override string ToString() => $"{Path}: {Message}";
 }
 
@@ -31,13 +32,16 @@ public sealed record ExtractionAttempt(
     string? RawPayload,
     IReadOnlyList<ValidationFailure> Failures)
 {
+    /// <summary>True when this attempt produced no validation failures.</summary>
     public bool Succeeded => Failures.Count == 0;
 }
 
 /// <summary>
-/// The full outcome of an extraction. <see cref="ChatClientExtractionExtensions.TryExtractAsync{T}"/>
-/// returns this directly; <see cref="ChatClientExtractionExtensions.ExtractAsync{T}"/> unwraps
-/// <see cref="Value"/> or throws <see cref="ExtractionException"/>.
+/// The full outcome of an extraction.
+/// <see cref="ChatClientExtractionExtensions.TryExtractAsync{T}(IChatClient, string, ExtractionOptions, CancellationToken)"/>
+/// returns this directly;
+/// <see cref="ChatClientExtractionExtensions.ExtractAsync{T}(IChatClient, string, ExtractionOptions, CancellationToken)"/>
+/// unwraps <see cref="Value"/> or throws <see cref="ExtractionException"/>.
 /// </summary>
 public sealed class ExtractionResult<T>
 {
@@ -51,6 +55,7 @@ public sealed class ExtractionResult<T>
 
     private readonly T? _value;
 
+    /// <summary>True when an attempt produced a value that passed every validation stage.</summary>
     public bool IsSuccess { get; }
 
     /// <summary>The extracted value. Throws if <see cref="IsSuccess"/> is false — check first,
@@ -60,6 +65,7 @@ public sealed class ExtractionResult<T>
         : throw new InvalidOperationException(
             "Extraction did not succeed; inspect Attempts for the failure detail.");
 
+    /// <summary>The extracted value, or <c>default</c> when the extraction failed. Never throws.</summary>
     public T? ValueOrDefault => _value;
 
     /// <summary>Every model round-trip, in order, including the failures that drove each repair.</summary>
@@ -81,8 +87,10 @@ public sealed class ExtractionException : Exception
         Attempts = attempts;
     }
 
+    /// <summary>The type the extraction was targeting.</summary>
     public Type TargetType { get; }
 
+    /// <summary>Every model round-trip that was attempted, with the failures that rejected each.</summary>
     public IReadOnlyList<ExtractionAttempt> Attempts { get; }
 
     private static string BuildMessage(Type targetType, IReadOnlyList<ExtractionAttempt> attempts)

@@ -1,8 +1,8 @@
 using System.Text;
-using Microsoft.Extensions.AI;
 using Ingot.Internal.Schema;
 using Ingot.Internal.Strategies;
 using Ingot.Internal.Validation;
+using Microsoft.Extensions.AI;
 
 namespace Ingot.Internal;
 

@@ -27,10 +27,15 @@ public enum ExtractionMode
 /// <summary>Per-call configuration for <c>ExtractAsync</c>.</summary>
 public sealed class ExtractionOptions
 {
+    /// <summary>Which extraction strategy to use, or <see cref="ExtractionMode.Auto"/> to resolve
+    /// one from the client's metadata. Default: <see cref="ExtractionMode.Auto"/>.</summary>
     public ExtractionMode Mode { get; set; } = ExtractionMode.Auto;
 
+    /// <summary>The repair-loop policy (how many attempts before giving up). Default:
+    /// <see cref="RetryPolicy.Default"/> (3 attempts).</summary>
     public RetryPolicy Retry { get; set; } = RetryPolicy.Default;
 
+    /// <summary>The validation stages that run after every model attempt.</summary>
     public ValidationOptions Validation { get; } = new();
 
     /// <summary>
@@ -75,6 +80,8 @@ public sealed class RetryPolicy
 
     private int _maxAttempts = 3;
 
+    /// <summary>Total attempts allowed, including the initial call (so 3 = initial + 2 repairs).
+    /// Must be at least 1.</summary>
     public int MaxAttempts
     {
         get => _maxAttempts;

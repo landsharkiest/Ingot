@@ -1,5 +1,5 @@
-using Microsoft.Extensions.AI;
 using Ingot.Internal;
+using Microsoft.Extensions.AI;
 
 namespace Ingot;
 
@@ -11,6 +11,10 @@ namespace Ingot;
 /// </summary>
 public interface ISemanticValidator<in T>
 {
+    /// <summary>Validates <paramref name="value"/>, returning any failures to feed back into the
+    /// repair loop. Return an empty list to accept the value.</summary>
+    /// <param name="value">The deserialized, structurally-valid object to check.</param>
+    /// <param name="cancellationToken">Cancels any external work the validator performs.</param>
     ValueTask<IReadOnlyList<ValidationFailure>> ValidateAsync(T value, CancellationToken cancellationToken);
 }
 

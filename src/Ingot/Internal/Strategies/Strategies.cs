@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Microsoft.Extensions.AI;
 using Ingot.Internal.Json;
 using Ingot.Internal.Schema;
+using Microsoft.Extensions.AI;
 
 namespace Ingot.Internal.Strategies;
 
@@ -63,7 +63,7 @@ internal sealed class NativeSchemaStrategy : IExtractionStrategy
     public void Prepare(List<ChatMessage> conversation, ChatOptions chatOptions, ExtractionPlan plan)
     {
         chatOptions.ResponseFormat = ChatResponseFormat.ForJsonSchema(
-            plan.Schema, plan.SchemaName, description: null);
+            plan.Schema, plan.SchemaName, schemaDescription: null);
     }
 
     public string? TryExtractPayload(ChatResponse response) =>
