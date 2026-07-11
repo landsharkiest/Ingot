@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Ingot</PackageId>
+    <Description>Structured, validated, self-repairing LLM outputs for .NET. One call from prompt to typed object.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RootNamespace>Ingot</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Pin to the current stable at implementation time; the abstractions surface
+         has churned between preview waves. Everything we touch is listed in
+         README.md § "API surface to verify". -->
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ingot.Tests" />
+  </ItemGroup>
+</Project>
