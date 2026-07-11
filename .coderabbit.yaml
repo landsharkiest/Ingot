@@ -2,9 +2,9 @@
 language: en-US
 tone_instructions: >-
   Be concise and technical. Focus on correctness, nullability, async
-  correctness (ConfigureAwait, cancellation-token propagation), and public API
-  design. This is a .NET library with TreatWarningsAsErrors, file-scoped
-  namespaces, and XML docs required on public members.
+  correctness (ConfigureAwait, cancellation propagation), and public API
+  design. .NET library: warnings-as-errors, file-scoped
+  namespaces, XML docs on public members.
 
 reviews:
   profile: chill
