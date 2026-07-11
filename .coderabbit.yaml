@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+tone_instructions: >-
+  Be concise and technical. Focus on correctness, nullability, async
+  correctness (ConfigureAwait, cancellation-token propagation), and public API
+  design. This is a .NET library with TreatWarningsAsErrors, file-scoped
+  namespaces, and XML docs required on public members.
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_filters:
+    - "!**/bin/**"
+    - "!**/obj/**"
+    - "!**/*.min.*"
+  path_instructions:
+    - path: "src/**/*.cs"
+      instructions: >-
+        Public members must carry XML doc comments. Prefer file-scoped
+        namespaces. Async methods should accept and honor a CancellationToken
+        and use ConfigureAwait(false) in library code. Flag nullable-reference
+        violations and any swallowed exceptions.
+    - path: "tests/**/*.cs"
+      instructions: >-
+        Tests are xUnit behavior tests over a scripted FakeChatClient. Prefer
+        clear Arrange/Act/Assert structure and descriptive test names.
+
+chat:
+  auto_reply: true
