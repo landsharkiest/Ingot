@@ -2,9 +2,9 @@
 language: en-US
 tone_instructions: >-
   Be concise and technical. Focus on correctness, nullability, async
-  correctness (ConfigureAwait, cancellation-token propagation), and public API
-  design. This is a .NET library with TreatWarningsAsErrors, file-scoped
-  namespaces, and XML docs required on public members.
+  correctness (ConfigureAwait, cancellation propagation), and public API
+  design. .NET library: warnings-as-errors, file-scoped namespaces, XML
+  docs on public members.
 
 reviews:
   profile: chill
@@ -32,6 +32,39 @@ reviews:
       instructions: >-
         Tests are xUnit behavior tests over a scripted FakeChatClient. Prefer
         clear Arrange/Act/Assert structure and descriptive test names.
+  # Finishing touches expose the fix commands/checkboxes. Enabling autofix does
+  # NOT auto-apply anything — a human still triggers it. Prefer
+  # "@coderabbitai autofix stacked pr" so fixes land in a separate PR you
+  # review before they touch the branch.
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
+    autofix:
+      enabled: true
+
+# CodeRabbit's project memory. It compounds two ways as the repo is built out:
+#  1. code_guidelines are re-read on every review, so any convention added to
+#     CLAUDE.md / CONTRIBUTING.md / .editorconfig takes effect automatically.
+#  2. learnings persist the corrections you give CodeRabbit in PR threads
+#     ("our convention is X"), scoped to THIS repo, and are reused in later
+#     reviews — so the reviewer gets more project-aware over time.
+knowledge_base:
+  opt_out: false
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "CLAUDE.md"
+      - "CONTRIBUTING.md"
+      - ".editorconfig"
+      - ".github/copilot-instructions.md"
+  learnings:
+    scope: local
+  pull_requests:
+    scope: local
+  issues:
+    scope: local
 
 chat:
   auto_reply: true
