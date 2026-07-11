@@ -42,4 +42,15 @@ public sealed class LenientJsonTests
     {
         Assert.Null(LenientJson.TryExtract("first {\"x\":[1,2} second [3,4}"));
     }
+
+    [Fact]
+    public void TryExtract_MalformedOuterWithBalancedInner_PrefersLaterRoot()
+    {
+        // A malformed outer payload (mismatched brackets) containing a balanced inner array
+        // should not extract the inner array when a later corrected root payload exists.
+        // This prevents returning stale nested data instead of the model's corrected output.
+        var result = LenientJson.TryExtract("{start [\"inner\"]] {\"corrected\":true}");
+
+        Assert.Equal("{\"corrected\":true}", result);
+    }
 }

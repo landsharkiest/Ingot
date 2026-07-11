@@ -124,7 +124,11 @@ public sealed class StrictSchemaTransformerTests
         Assert.False(Property(c, "c").TryGetProperty("multipleOf", out _));
     }
 
-    private static JsonElement Parse(string json) => JsonDocument.Parse(json).RootElement.Clone();
+    private static JsonElement Parse(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        return document.RootElement.Clone();
+    }
 
     private static JsonElement Property(JsonElement schema, string name) =>
         schema.GetProperty("properties").GetProperty(name);

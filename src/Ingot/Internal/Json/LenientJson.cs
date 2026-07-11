@@ -49,6 +49,58 @@ internal static class LenientJson
             {
                 var candidate = ExtractBalanced(span, i);
                 if (candidate is not null) return candidate;
+
+                // ExtractBalanced rejected this candidate (mismatched/truncated/unbalanced).
+                // If this is the very first character of the span (i == 0), skip past the
+                // candidate's likely extent to avoid extracting balanced nested content, which
+                // could be stale partial data. For mid-span candidates, continue char-by-char
+                // to handle "model restarts" after prose.
+                if (i == 0)
+                {
+                    var depth = 1;
+                    var inString = false;
+                    var escaped = false;
+
+                    for (var j = i + 1; j < span.Length; j++)
+                    {
+                        var c = span[j];
+
+                        if (inString)
+                        {
+                            if (escaped) escaped = false;
+                            else if (c == '\\') escaped = true;
+                            else if (c == '"') inString = false;
+                            continue;
+                        }
+
+                        if (c == '"')
+                        {
+                            inString = true;
+                        }
+                        else if (c is '{' or '[')
+                        {
+                            depth++;
+                        }
+                        else if (c is '}' or ']')
+                        {
+                            depth--;
+                            if (depth <= 0)
+                            {
+                                // Found a potential closer. Resume searching from after this position.
+                                i = j;
+                                break;
+                            }
+                        }
+                    }
+
+                    // If we never found a closer (depth > 0), the candidate extends to end of
+                    // span. No more candidates to try, return null.
+                    if (depth > 0)
+                    {
+                        return null;
+                    }
+                }
+                // For i > 0, just continue to the next character (original behavior)
             }
         }
 
