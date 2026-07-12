@@ -1,0 +1,39 @@
+name: Eval
+
+# Ring 3: the eval harness scores extraction quality (first-attempt vs post-repair success, cost).
+# It runs on a schedule and on demand — never on the PR hot path. The offline suite is deterministic
+# and needs no secrets; point the runner at a live IChatClient to score a real model.
+on:
+  schedule:
+    - cron: '0 6 * * *'   # daily, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  eval:
+    name: Run eval scorecard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run offline eval suite
+        run: dotnet run --project eval/Ingot.Evals --configuration Release -- --out ./eval-output
+
+      - name: Upload scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval-output/

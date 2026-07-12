@@ -1,0 +1,9 @@
+{
+  "name": "anthropic-invoice-toolcall",
+  "provider": "anthropic",
+  "description": "Anthropic forced tool call: extracted fields arrive as tool-call arguments.",
+  "turns": [
+    { "toolArguments": { "vendorName": "Globex", "issuedOn": "2026-06-01", "total": 1200.50 } }
+  ],
+  "expected": { "vendorName": "Globex", "issuedOn": "2026-06-01", "total": 1200.50 }
+}

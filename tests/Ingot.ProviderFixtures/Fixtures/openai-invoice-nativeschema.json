@@ -1,0 +1,9 @@
+{
+  "name": "openai-invoice-nativeschema",
+  "provider": "openai",
+  "description": "OpenAI strict structured output: schema-conforming JSON returned as assistant text.",
+  "turns": [
+    { "text": "{\"vendorName\":\"Acme Corp\",\"issuedOn\":\"2026-06-01\",\"total\":450.00}" }
+  ],
+  "expected": { "vendorName": "Acme Corp", "issuedOn": "2026-06-01", "total": 450.00 }
+}
