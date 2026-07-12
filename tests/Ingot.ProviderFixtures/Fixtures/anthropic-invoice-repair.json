@@ -1,0 +1,10 @@
+{
+  "name": "anthropic-invoice-repair",
+  "provider": "anthropic",
+  "description": "Anthropic returns an out-of-range total (fails [Range]), then repairs on the second tool call.",
+  "turns": [
+    { "toolArguments": { "vendorName": "Globex", "issuedOn": "2026-06-01", "total": -5.00 } },
+    { "toolArguments": { "vendorName": "Globex", "issuedOn": "2026-06-01", "total": 1200.50 } }
+  ],
+  "expected": { "vendorName": "Globex", "issuedOn": "2026-06-01", "total": 1200.50 }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "prompted-invoice-fenced",
+  "provider": "mystery-llm",
+  "description": "Unknown provider (Prompted): prose-wrapped fenced JSON recovered by the lenient reader.",
+  "turns": [
+    { "text": "Sure! Here is the invoice:\n```json\n{\"vendorName\":\"Umbrella\",\"issuedOn\":\"2026-07-02\",\"total\":99.99}\n```\nLet me know if you need anything else." }
+  ],
+  "expected": { "vendorName": "Umbrella", "issuedOn": "2026-07-02", "total": 99.99 }
+}

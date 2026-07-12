@@ -25,8 +25,10 @@ src/Ingot/
   ExtractionOptions.cs                  Options, RetryPolicy, ExtractionMode
   ExtractionResult.cs                   Result/Attempt/Failure/Exception diagnostics
   ChatClientExtractionExtensions.cs     Public API + ISemanticValidator<T>
+  Diagnostics/IngotDiagnostics.cs       ActivitySource + Meter ("Ingot"), instruments
+  Diagnostics/ExtractionLog.cs          Source-generated [LoggerMessage] delegates
   Internal/
-    ExtractionEngine.cs                 Repair-loop orchestration + usage accumulation
+    ExtractionEngine.cs                 Repair-loop orchestration + usage accumulation + telemetry
     Schema/ExtractionPlan.cs            Cached per-type plan (schema + names)
     Schema/StrictSchemaTransformer.cs   format-keyword folding, strict-mode compliance ← core IP
     Strategies/Strategies.cs            NativeSchema / ToolCall / JsonMode / Prompted + resolver
@@ -35,6 +37,9 @@ src/Ingot/
 tests/Ingot.Tests/
   FakeChatClient.cs                     Scripted, request-recording IChatClient (ring 1)
   ExtractionEngineTests.cs              Engine behavior: repair, annotations, semantic, exhaustion
+  DiagnosticsTests.cs                   Spans, metrics, per-attempt usage, redaction
+tests/Ingot.ProviderFixtures/           Ring 2: recorded provider responses replayed (no network)
+eval/Ingot.Evals/                       Ring 3: eval harness scoring success/cost + scorecard
 ```
 
 ## Engineering status — read before building
@@ -83,15 +88,39 @@ strategy tuning.
 Public API is forever; internal is Tuesday.
 
 **Usage is never hidden.** `ExtractionResult<T>.AggregateUsage` sums tokens across every
-attempt. Retries cost money; when TokenLedger sits outboard it meters each attempt
-independently — the two views reconcile by design.
+attempt, and each `ExtractionAttempt.Usage` meters that attempt independently — the two views
+reconcile by design. Retries cost money, and both the metric (`ingot.tokens`) and the result
+object say so.
+
+## Observability
+
+Instrumentation is a single seam in the engine and always on — near-free when nothing listens.
+Subscribe by name from OpenTelemetry or a plain listener:
+
+```csharp
+builder.AddSource(IngotDiagnostics.SourceName)   // "Ingot" — one span per extraction
+       .AddMeter(IngotDiagnostics.SourceName);    //           + event per attempt
+```
+
+One `Ingot.extract` span (target type, strategy, provider, outcome, attempts, repair rounds,
+tokens) carries one event per attempt (structural only — never raw payload). Metrics:
+`ingot.extractions`, `ingot.extraction.duration`, `ingot.repair_rounds`, `ingot.tokens`,
+`ingot.failures` (by category). This composes with the host's own `UseOpenTelemetry()` on the
+`IChatClient` — those spans cover the model calls, these cover the extraction around them.
+Logging is opt-in via `ExtractionOptions.Diagnostics` (an `ILoggerFactory`, plus `RedactPayloads`
+and a length cap for bounded, redactable diagnostics).
 
 ## Test rings
 
-Ring 1 (this repo): deterministic engine tests over `FakeChatClient`.
-Ring 2 (Phase 1 exit): recorded provider fixtures replaying real schema-mode quirks per version.
-Ring 3 (nightly): live-model eval benchmark (~50 extraction tasks) scoring first-attempt
-success, post-repair success, and cost — the numbers we publish.
+Ring 1 (`tests/Ingot.Tests`): deterministic engine tests over `FakeChatClient`.
+Ring 2 (`tests/Ingot.ProviderFixtures`): recorded provider responses (tool-call for Anthropic,
+text for Ollama/OpenAI/prompted) replayed through the real engine — no network. Covers the
+ToolCall and JsonMode strategies and cross-provider repair; the on-disk format is what live
+captures drop into.
+Ring 3 (`eval/Ingot.Evals`): an eval harness scoring first-attempt success, post-repair success,
+avg repair rounds, tokens/success, and latency, emitting a markdown + JSON scorecard. Runs a
+deterministic offline suite today (and as a nightly workflow); swap in a live `IChatClient` to
+score a real model. It subscribes to Ingot's own meter — the observability layer feeds the eval.
 
 ## Product direction
 
@@ -102,11 +131,12 @@ self-repair, diagnostics, and retry cost accounting all sit over `IChatClient`.
 
 ## Phase 1 remaining work
 
-Source-generated schemas + `JsonSerializerContext` for AOT (`Ingot.SourceGenerators`),
-FluentValidation adapter package, capability-registry overrides in options, `ILogger`/`Activity`
-instrumentation (span per extraction, event per attempt), and the docs site skeleton with the
-provider capability matrix.
+Delivered: `ILogger`/`Activity` instrumentation (span per extraction, event per attempt, metrics),
+bounded and redactable diagnostics, recorded provider fixtures (ring 2), and the eval harness
+(ring 3, offline suite with a live-client seam).
 
-Before a first NuGet release, Phase 1 also needs recorded provider fixtures, post-deserialization
-structural validation for prompted/JSON modes, explicit provider capability overrides, bounded and
-redactable diagnostics, and a pinned `Microsoft.Extensions.AI` compatibility baseline.
+Still open: source-generated schemas + `JsonSerializerContext` for AOT (`Ingot.SourceGenerators`),
+FluentValidation adapter package, capability-registry overrides in options, the docs site skeleton
+with the provider capability matrix, post-deserialization structural validation for prompted/JSON
+modes, live-model eval fixtures, and a pinned `Microsoft.Extensions.AI` compatibility baseline
+before a first NuGet release.

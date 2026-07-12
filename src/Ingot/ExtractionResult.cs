@@ -27,10 +27,17 @@ public sealed record ValidationFailure(string Path, string Message, FailureCateg
 }
 
 /// <summary>One model round-trip inside an extraction, kept for diagnostics and telemetry.</summary>
+/// <param name="Number">1-based attempt index (attempt 1 is the initial call).</param>
+/// <param name="RawPayload">The extracted JSON text, or <c>null</c> when the response carried none.</param>
+/// <param name="Failures">The validation failures this attempt produced, in order.</param>
+/// <param name="Usage">Token usage reported for this single attempt, if the provider supplied it.
+/// The <see cref="ExtractionResult{T}.AggregateUsage"/> is the sum of these — retries cost money,
+/// and this meters each attempt independently.</param>
 public sealed record ExtractionAttempt(
     int Number,
     string? RawPayload,
-    IReadOnlyList<ValidationFailure> Failures)
+    IReadOnlyList<ValidationFailure> Failures,
+    UsageDetails? Usage = null)
 {
     /// <summary>True when this attempt produced no validation failures.</summary>
     public bool Succeeded => Failures.Count == 0;

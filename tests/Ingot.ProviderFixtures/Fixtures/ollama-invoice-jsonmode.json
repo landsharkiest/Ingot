@@ -1,0 +1,9 @@
+{
+  "name": "ollama-invoice-jsonmode",
+  "provider": "ollama",
+  "description": "Ollama json_object mode: a bare JSON object returned as assistant text.",
+  "turns": [
+    { "text": "{\"vendorName\":\"Initech\",\"issuedOn\":\"2026-05-14\",\"total\":875.00}" }
+  ],
+  "expected": { "vendorName": "Initech", "issuedOn": "2026-05-14", "total": 875.00 }
+}

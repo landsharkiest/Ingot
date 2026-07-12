@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Ingot;
 
@@ -50,6 +51,32 @@ public sealed class ExtractionOptions
     /// (camelCase, case-insensitive read) which matches what models most naturally emit.
     /// </summary>
     public JsonSerializerOptions SerializerOptions { get; set; } = new(JsonSerializerDefaults.Web);
+
+    /// <summary>Logging and payload-redaction settings. Traces and metrics are always on via
+    /// <see cref="Ingot.Diagnostics.IngotDiagnostics"/>; only logging is opt-in here.</summary>
+    public DiagnosticsOptions Diagnostics { get; } = new();
+}
+
+/// <summary>
+/// Opt-in logging for the extraction loop, plus bounds on what diagnostics may contain.
+/// Distributed tracing (<c>Ingot.extract</c> spans) and metrics require no configuration —
+/// subscribe to <see cref="Ingot.Diagnostics.IngotDiagnostics.SourceName"/>. Logging is opt-in
+/// because it needs an <see cref="ILoggerFactory"/> and can surface model output.
+/// </summary>
+public sealed class DiagnosticsOptions
+{
+    /// <summary>When set, the engine logs per-attempt outcomes (failures at Warning, exhaustion
+    /// at Error, success at Debug). Default: <c>null</c> (no logging, no allocations).</summary>
+    public ILoggerFactory? LoggerFactory { get; set; }
+
+    /// <summary>When true, raw model payloads and validation messages are omitted from logs —
+    /// only structural paths and failure categories are recorded. Spans/metrics never carry raw
+    /// payloads regardless. Default: false.</summary>
+    public bool RedactPayloads { get; set; }
+
+    /// <summary>Upper bound on the length of a payload or failure summary written to a log,
+    /// truncated with an ellipsis beyond it. Default: 1024.</summary>
+    public int MaxLoggedPayloadLength { get; set; } = 1024;
 }
 
 /// <summary>Controls the validation stages that run after every model attempt.</summary>
