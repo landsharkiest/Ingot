@@ -204,10 +204,13 @@ internal static class ExtractionEngine
         ExtractionLog.AttemptFailed(logger, targetName, attempt.Number, attempt.Failures.Count,
             SummarizeFailures(attempt.Failures, diagnostics));
 
-        if (!diagnostics.RedactPayloads && attempt.RawPayload is { Length: > 0 } raw
-            && logger.IsEnabled(LogLevel.Debug))
+        if (!diagnostics.RedactPayloads && attempt.RawPayload is { Length: > 0 } raw)
         {
-            ExtractionLog.AttemptRawPayload(logger, targetName, attempt.Number, Cap(raw, diagnostics.MaxLoggedPayloadLength));
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var payload = Cap(raw, diagnostics.MaxLoggedPayloadLength);
+                ExtractionLog.AttemptRawPayload(logger, targetName, attempt.Number, payload);
+            }
         }
     }
 
@@ -218,7 +221,7 @@ internal static class ExtractionEngine
         string targetName,
         bool succeeded,
         int attemptsUsed,
-        IReadOnlyList<ExtractionAttempt> attempts,
+        List<ExtractionAttempt> attempts,
         UsageDetails aggregateUsage,
         long startedAt,
         string strategyName,
