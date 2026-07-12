@@ -113,7 +113,8 @@ internal static class ExtractionEngine
         }
         finally
         {
-            Complete(activity, logger, targetName, succeeded, attemptsUsed, attempts,
+            var lastFailures = attempts.Count > 0 ? attempts[^1].Failures : [];
+            Complete(activity, logger, targetName, succeeded, attemptsUsed, lastFailures,
                 usage.ToUsageDetails(), startedAt, strategyName, provider, diagnostics, ct);
         }
     }
@@ -221,7 +222,7 @@ internal static class ExtractionEngine
         string targetName,
         bool succeeded,
         int attemptsUsed,
-        List<ExtractionAttempt> attempts,
+        IReadOnlyList<ValidationFailure> lastFailures,
         UsageDetails aggregateUsage,
         long startedAt,
         string strategyName,
@@ -262,8 +263,7 @@ internal static class ExtractionEngine
         }
         else if (!canceled)
         {
-            var last = attempts.Count > 0 ? attempts[^1].Failures : [];
-            ExtractionLog.Exhausted(logger, targetName, attemptsUsed, SummarizeFailures(last, diagnostics));
+            ExtractionLog.Exhausted(logger, targetName, attemptsUsed, SummarizeFailures(lastFailures, diagnostics));
         }
     }
 
