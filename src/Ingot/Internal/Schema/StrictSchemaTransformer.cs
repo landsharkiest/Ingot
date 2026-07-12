@@ -42,8 +42,16 @@ internal static class StrictSchemaTransformer
 
     // Assertion keywords strict mode rejects but which carry model-useful intent.
     private static readonly string[] FoldableAssertions =
-        ["pattern", "minLength", "maxLength", "minimum", "maximum",
-         "exclusiveMinimum", "exclusiveMaximum", "minItems", "maxItems", "multipleOf"];
+        ["pattern",
+            "minLength",
+            "maxLength",
+            "minimum",
+            "maximum",
+            "exclusiveMinimum",
+            "exclusiveMaximum",
+            "minItems",
+            "maxItems",
+            "multipleOf"];
 
     public static JsonElement Transform(JsonElement schema)
     {
