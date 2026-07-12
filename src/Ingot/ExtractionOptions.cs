@@ -49,7 +49,7 @@ public sealed class ExtractionOptions
     /// Serializer used for deserialization and schema generation. Defaults to web defaults
     /// (camelCase, case-insensitive read) which matches what models most naturally emit.
     /// </summary>
-    public JsonSerializerOptions SerializerOptions { get; set; } = IngotJsonDefaults.Options;
+    public JsonSerializerOptions SerializerOptions { get; set; } = new(JsonSerializerDefaults.Web);
 }
 
 /// <summary>Controls the validation stages that run after every model attempt.</summary>
@@ -92,9 +92,4 @@ public sealed class RetryPolicy
     // Phase 2: model escalation — ThenEscalateTo(IChatClient) so early attempts run on a
     // cheap model and only failures pay for the frontier model. Deliberately omitted from
     // the MVP surface so we don't lock the shape before the eval benchmark exists.
-}
-
-internal static class IngotJsonDefaults
-{
-    public static JsonSerializerOptions Options { get; } = new(JsonSerializerDefaults.Web);
 }

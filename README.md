@@ -1,4 +1,4 @@
-# Ingot — Phase 1 vertical slice
+# Ingot — working draft
 
 Structured, validated, self-repairing LLM outputs for .NET, built as middleware over
 `Microsoft.Extensions.AI.IChatClient`.
@@ -93,9 +93,20 @@ Ring 2 (Phase 1 exit): recorded provider fixtures replaying real schema-mode qui
 Ring 3 (nightly): live-model eval benchmark (~50 extraction tasks) scoring first-attempt
 success, post-repair success, and cost — the numbers we publish.
 
+## Product direction
+
+Ingot is the trust layer after structured output. Provider-native schemas improve the chance of
+valid JSON, but providers may ignore response-format hints and schema conformance does not prove
+domain correctness. Ingot keeps those concerns portable: request shaping, local validation,
+self-repair, diagnostics, and retry cost accounting all sit over `IChatClient`.
+
 ## Phase 1 remaining work
 
 Source-generated schemas + `JsonSerializerContext` for AOT (`Ingot.SourceGenerators`),
 FluentValidation adapter package, capability-registry overrides in options, `ILogger`/`Activity`
 instrumentation (span per extraction, event per attempt), and the docs site skeleton with the
 provider capability matrix.
+
+Before a first NuGet release, Phase 1 also needs recorded provider fixtures, post-deserialization
+structural validation for prompted/JSON modes, explicit provider capability overrides, bounded and
+redactable diagnostics, and a pinned `Microsoft.Extensions.AI` compatibility baseline.

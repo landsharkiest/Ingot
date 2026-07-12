@@ -76,11 +76,46 @@ internal static class StrictSchemaTransformer
             obj["required"] = new JsonArray([.. properties.Select(p => (JsonNode)p.Key)]);
         }
 
-        // Recurse through every composition site a schema can hide sub-schemas in.
-        foreach (var key in (string[])["properties", "items", "anyOf", "allOf", "oneOf", "$defs", "definitions"])
+        // Schema maps contain arbitrary member names, so the map itself is not a schema and
+        // cannot be passed to Visit directly. Visit each mapped schema instead.
+        VisitSchemaMap(obj["properties"]);
+        VisitSchemaMap(obj["$defs"]);
+        VisitSchemaMap(obj["definitions"]);
+
+        // Single-schema locations.
+        VisitSchema(obj["items"]);
+        VisitSchema(obj["additionalProperties"]);
+
+        // Composition locations contain arrays of schemas.
+        VisitSchemaArray(obj["anyOf"]);
+        VisitSchemaArray(obj["allOf"]);
+        VisitSchemaArray(obj["oneOf"]);
+    }
+
+    private static void VisitSchemaMap(JsonNode? node)
+    {
+        if (node is not JsonObject map) return;
+
+        foreach (var (_, schema) in map)
         {
-            if (obj[key] is JsonNode child) Visit(child);
+            VisitSchema(schema);
         }
+    }
+
+    private static void VisitSchemaArray(JsonNode? node)
+    {
+        if (node is not JsonArray schemas) return;
+
+        foreach (var schema in schemas)
+        {
+            VisitSchema(schema);
+        }
+    }
+
+    private static void VisitSchema(JsonNode? schema)
+    {
+        // JSON Schema also permits boolean schemas. They need no transformation.
+        if (schema is JsonObject or JsonArray) Visit(schema);
     }
 
     private static void FoldFormatIntoDescription(JsonObject obj)

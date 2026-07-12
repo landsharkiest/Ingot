@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.AI;
 using Xunit;
 
@@ -10,6 +12,10 @@ public sealed class ExtractionEngineTests
         string VendorName,
         DateOnly IssuedOn,
         [property: Range(0, 1_000_000)] decimal Total);
+
+    private sealed record CustomNamedInvoice(
+        [property: Range(0, 1)] decimal TaxRate,
+        [property: JsonPropertyName("invoice_total"), Range(0, 1)] decimal Total);
 
     private const string ValidInvoiceJson =
         """{"vendorName":"Acme Corp","issuedOn":"2026-06-01","total":450.00}""";
@@ -122,11 +128,33 @@ public sealed class ExtractionEngineTests
         Assert.Equal(3, ex.Attempts.Count);
         Assert.Equal(typeof(Invoice), ex.TargetType);
         Assert.Equal(3, client.CallCount);
+        Assert.Equal(450, ex.AggregateUsage.TotalTokenCount);
 
         var result = await new FakeChatClient("openai", "not json")
             .TryExtractAsync<Invoice>("x", new ExtractionOptions { Retry = RetryPolicy.None });
         Assert.False(result.IsSuccess);
         Assert.Equal(150, result.AggregateUsage.TotalTokenCount);
+    }
+
+    [Fact]
+    public async Task Extract_AnnotationPaths_HonorNamingPolicy_WithAttributeTakingPriority()
+    {
+        var client = new FakeChatClient("mystery-llm",
+            """{"tax_rate":2,"invoice_total":2}""");
+        var options = new ExtractionOptions
+        {
+            Retry = RetryPolicy.None,
+            SerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            },
+        };
+
+        var result = await client.TryExtractAsync<CustomNamedInvoice>("Extract.", options);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.Attempts[0].Failures, failure => failure.Path == "$.tax_rate");
+        Assert.Contains(result.Attempts[0].Failures, failure => failure.Path == "$.invoice_total");
     }
 
     // ---------------------------------------------------------------- prompted / lenient path

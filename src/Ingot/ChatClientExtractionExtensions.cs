@@ -45,7 +45,7 @@ public static class ChatClientExtractionExtensions
         var result = await client.TryExtractAsync<T>(messages, options, cancellationToken).ConfigureAwait(false);
         return result.IsSuccess
             ? result.Value
-            : throw new ExtractionException(typeof(T), result.Attempts);
+            : throw new ExtractionException(typeof(T), result.Attempts, result.AggregateUsage);
     }
 
     /// <summary>Non-throwing variant exposing the full attempt history and aggregate token usage.</summary>
