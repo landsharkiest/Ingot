@@ -1,13 +1,16 @@
 name: Release
 
 # Publishes the Ingot package to NuGet when a v* tag is pushed. The tag drives the version
-# (v0.2.0 -> 0.2.0), so no csproj edit is needed to ship. Requires a NUGET_API_KEY secret.
+# (v0.2.0 -> 0.2.0), so no csproj edit is needed to ship. Auth uses NuGet Trusted Publishing
+# (OIDC) — no stored API key. Requires a Trusted Publishing policy on nuget.org for this repo +
+# workflow, and a NUGET_USER secret set to your nuget.org username.
 on:
   push:
     tags: ['v*']
 
 permissions:
   contents: read
+  id-token: write   # mint the GitHub OIDC token that NuGet exchanges for a short-lived key
 
 env:
   DOTNET_NOLOGO: true
@@ -41,11 +44,18 @@ jobs:
       - name: Pack
         run: dotnet pack src/Ingot --configuration Release -p:Version="$VERSION" -o ./artifacts
 
+      # Exchange the GitHub OIDC token for a short-lived NuGet key, immediately before the push.
+      - name: Authenticate to NuGet (trusted publishing)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to NuGet
         run: |
           for pkg in ./artifacts/*.nupkg; do
             dotnet nuget push "$pkg" \
-              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
           done
