@@ -14,6 +14,8 @@ internal sealed class ScriptedChatClient(string providerName, params string[] sc
     public Task<ChatResponse> GetResponseAsync(
         IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var text = _script.Count > 0 ? _script.Dequeue() : _script.LastOrDefault() ?? "";
         var response = new ChatResponse(new ChatMessage(ChatRole.Assistant, text))
         {

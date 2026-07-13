@@ -35,8 +35,8 @@ services.AddIngotExtraction(options => options.Retry = RetryPolicy.Default);
 
 public sealed class InvoiceService(IExtractor extractor)
 {
-    public Task<Invoice> ParseAsync(string email) =>
-        extractor.ExtractAsync<Invoice>($"Extract the invoice:\n{email}");
+    public Task<Invoice> ParseAsync(string email, CancellationToken ct = default) =>
+        extractor.ExtractAsync<Invoice>($"Extract the invoice:\n{email}", ct);
 }
 ```
 
@@ -45,7 +45,7 @@ A runnable tour — direct use, DI, and a live OpenTelemetry trace of the repair
 
 ## Repository layout
 
-```
+```text
 src/Ingot/
   ExtractionOptions.cs                  Options, RetryPolicy, ExtractionMode
   ExtractionResult.cs                   Result/Attempt/Failure/Exception diagnostics

@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Ingot;
 using Ingot.Diagnostics;
 using InvoiceExtractor;
@@ -57,13 +56,4 @@ for (var i = 0; i < result.Attempts.Count; i++)
     Console.WriteLine($"  attempt {attempt.Number}: {detail}");
 }
 Console.WriteLine();
-Console.WriteLine("(The Activity/Metric lines above are emitted by the OpenTelemetry console exporter.)");
-
-namespace InvoiceExtractor
-{
-    /// <summary>The shape we want out of the model. DataAnnotations are enforced after parsing.</summary>
-    internal sealed record Invoice(
-        string VendorName,
-        DateOnly IssuedOn,
-        [property: Range(0, 1_000_000)] decimal Total);
-}
+Console.WriteLine("(The Activity lines above are emitted by the OpenTelemetry console exporter.)");
