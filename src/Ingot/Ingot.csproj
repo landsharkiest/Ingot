@@ -36,7 +36,7 @@
          they live in the base framework. Kept to the abstractions to stay a library. -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.*" />
     <!-- DI abstractions for AddIngotExtraction; used in public API, so referenced directly. -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Ingot.Tests" />
