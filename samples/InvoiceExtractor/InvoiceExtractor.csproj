@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <!-- Sample code isn't shipped API: no XML-doc requirement. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RootNamespace>InvoiceExtractor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ingot/Ingot.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- DI container + a real OpenTelemetry console exporter, to show the genuine integration. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.*" />
+    <PackageReference Include="OpenTelemetry" Version="1.*" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.*" />
+  </ItemGroup>
+</Project>

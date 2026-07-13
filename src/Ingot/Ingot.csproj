@@ -1,10 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Ingot</PackageId>
+    <Version>0.1.0</Version>
     <Description>Structured, validated, self-repairing LLM outputs for .NET. One call from prompt to typed object.</Description>
+    <Authors>landsharkiest</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>llm;ai;structured-output;extraction;json-schema;validation;openai;anthropic;ollama;Microsoft.Extensions.AI</PackageTags>
+    <PackageProjectUrl>https://github.com/landsharkiest/Ingot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/landsharkiest/Ingot</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RootNamespace>Ingot</RootNamespace>
+
+    <!-- Reproducible, debuggable packages: SourceLink (built into the .NET 8 SDK), embedded
+         untracked sources, and a symbols package. ContinuousIntegrationBuild is set only on CI
+         so local builds keep absolute paths. -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ship the repo README as the package's readme. -->
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
   <ItemGroup>
     <!-- Pin to the current stable at implementation time; the abstractions surface
          has churned between preview waves. Everything we touch is listed in
@@ -14,6 +35,8 @@
          source generator). Diagnostics via ActivitySource/Meter need no package —
          they live in the base framework. Kept to the abstractions to stay a library. -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.*" />
+    <!-- DI abstractions for AddIngotExtraction; used in public API, so referenced directly. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.*" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Ingot.Tests" />

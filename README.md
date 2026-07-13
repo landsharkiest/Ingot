@@ -18,13 +18,39 @@ metadata, response parsed, `DateOnly` converted, `[Range]` enforced, and invalid
 repaired via retry-with-error-feedback. Unrecoverable failure throws `ExtractionException`
 carrying the full attempt history — never a silent null.
 
+## Install
+
+```bash
+dotnet add package Ingot
+```
+
+## Dependency injection
+
+Register once and inject `IExtractor` — a registered `ILoggerFactory` is auto-wired for
+extraction logging:
+
+```csharp
+services.AddSingleton<IChatClient>(/* your provider's IChatClient */);
+services.AddIngotExtraction(options => options.Retry = RetryPolicy.Default);
+
+public sealed class InvoiceService(IExtractor extractor)
+{
+    public Task<Invoice> ParseAsync(string email, CancellationToken ct = default) =>
+        extractor.ExtractAsync<Invoice>($"Extract the invoice:\n{email}", ct);
+}
+```
+
+A runnable tour — direct use, DI, and a live OpenTelemetry trace of the repair loop — is in
+[`samples/InvoiceExtractor`](samples/InvoiceExtractor): `dotnet run --project samples/InvoiceExtractor`.
+
 ## Repository layout
 
-```
+```text
 src/Ingot/
   ExtractionOptions.cs                  Options, RetryPolicy, ExtractionMode
   ExtractionResult.cs                   Result/Attempt/Failure/Exception diagnostics
   ChatClientExtractionExtensions.cs     Public API + ISemanticValidator<T>
+  DependencyInjection/                  IExtractor + AddIngotExtraction (DI wiring)
   Diagnostics/IngotDiagnostics.cs       ActivitySource + Meter ("Ingot"), instruments
   Diagnostics/ExtractionLog.cs          Source-generated [LoggerMessage] delegates
   Internal/
@@ -40,6 +66,7 @@ tests/Ingot.Tests/
   DiagnosticsTests.cs                   Spans, metrics, per-attempt usage, redaction
 tests/Ingot.ProviderFixtures/           Ring 2: recorded provider responses replayed (no network)
 eval/Ingot.Evals/                       Ring 3: eval harness scoring success/cost + scorecard
+samples/InvoiceExtractor/               Runnable tour: direct use, DI, OpenTelemetry trace
 ```
 
 ## Engineering status — read before building
