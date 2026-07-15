@@ -8,6 +8,17 @@ All notable changes to this project are documented here. The format is based on
 
 _No unreleased changes yet._
 
+## [0.1.1] - 2026-07-15
+
+Documentation-only release. No library or API changes — published so the professional README
+becomes the package's front page on NuGet (a package's README is fixed at publish time).
+
+### Changed
+
+- README rewritten for the published package: badges, provider support matrix, configuration
+  reference, observability metrics, validation examples, and a roadmap.
+- Added `LICENSE` (MIT), `CONTRIBUTING.md`, `CHANGELOG.md`, and `SECURITY.md`.
+
 ## [0.1.0] - 2026-07-13
 
 Initial public release.
@@ -32,5 +43,6 @@ Initial public release.
 - Runnable `samples/InvoiceExtractor` tour and a three-ring test/eval suite
   (`Ingot.Tests`, `Ingot.ProviderFixtures`, `Ingot.Evals`).
 
-[Unreleased]: https://github.com/landsharkiest/Ingot/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/landsharkiest/Ingot/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/landsharkiest/Ingot/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/landsharkiest/Ingot/releases/tag/v0.1.0
