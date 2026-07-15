@@ -16,10 +16,10 @@ dotnet format --verify-no-changes   # what CI checks
 Target framework: **net8.0**. Tests are **xUnit** behavior tests over a scripted
 `FakeChatClient` (no live model calls in CI).
 
-> **Status:** Phase 1 is reconciled against `Microsoft.Extensions.AI.Abstractions`
-> **9.10.2** — the build is clean (warnings-as-errors) and all 8 tests pass. CI
-> (build + test + format) gates every PR; CodeRabbit reviews automatically and
-> can apply fixes via `@coderabbitai autofix`.
+> **Status:** Published on NuGet as [`Ingot`](https://www.nuget.org/packages/Ingot) (0.1.0),
+> reconciled against `Microsoft.Extensions.AI.Abstractions` 9.x. The build is clean
+> (warnings-as-errors) and the full test suite passes. CI (build + test + format) gates every PR;
+> CodeRabbit reviews automatically and can apply fixes via `@coderabbitai autofix`.
 
 ## Code conventions (enforced by `.editorconfig` + analyzers)
 
