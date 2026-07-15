@@ -1,0 +1,10 @@
+    [Fact]
+    public void TryExtract_MismatchedFirstCandidateAtIndex0_ReturnsLaterValidPayload()
+    {
+        // First candidate starts at index 0 with a bracket-type mismatch ([1} not [1])
+        // The skip block uses type-agnostic depth counting, so the [ adds to depth
+        // and the mismatched } only decrements to 1 (not 0), causing the skip to
+        // overshoot and swallow the valid later candidate.
+        var result = LenientJson.TryExtract("{\"bad\":[1} {\"good\":true}");
+        Assert.Equal("{\"good\":true}", result);
+    }
