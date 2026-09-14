@@ -30,7 +30,7 @@
     <!-- Pin to the current stable at implementation time; the abstractions surface
          has churned between preview waves. Everything we touch is listed in
          README.md § "API surface to verify". -->
-    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.*" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="10.*" />
     <!-- Logging abstractions only (ILogger/ILoggerFactory + the [LoggerMessage]
          source generator). Diagnostics via ActivitySource/Meter need no package —
          they live in the base framework. Kept to the abstractions to stay a library. -->
